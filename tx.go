@@ -1,6 +1,10 @@
 package easql
 
-import "github.com/jmoiron/sqlx"
+import (
+	"fmt"
+
+	"github.com/jmoiron/sqlx"
+)
 
 type Tx struct {
 	raw *sqlx.Tx
@@ -17,16 +21,24 @@ func newTx(raw *sqlx.Tx) *Tx {
 func (db *DB) Begin() (*Tx, error) {
 	raw, err := db.raw.Beginx()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error begin: %w", err)
 	}
 
 	return newTx(raw), nil
 }
 
 func (tx *Tx) Commit() error {
-	return tx.raw.Commit()
+	if err := tx.raw.Commit(); err != nil {
+		return fmt.Errorf("error commit: %w", err)
+	}
+
+	return nil
 }
 
 func (tx *Tx) Rollback() error {
-	return tx.raw.Rollback()
+	if err := tx.raw.Rollback(); err != nil {
+		return fmt.Errorf("error rollback: %w", err)
+	}
+
+	return nil
 }

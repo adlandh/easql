@@ -1,3 +1,4 @@
+// Package easql is a sqlx + squirrel wrapper
 package easql
 
 import (
@@ -21,5 +22,6 @@ func NewDB(raw *sqlx.DB) *DB {
 			Queryer: &queryer{raw: raw},
 		}
 	})
+
 	return dbInstance
 }
