@@ -10,6 +10,7 @@ import (
 type DB struct {
 	raw *sqlx.DB
 	Queryer
+	QueryerContext
 }
 
 var dbLock sync.Once
@@ -18,8 +19,9 @@ var dbInstance *DB
 func NewDB(raw *sqlx.DB) *DB {
 	dbLock.Do(func() {
 		dbInstance = &DB{
-			raw:     raw,
-			Queryer: &queryer{raw: raw},
+			raw:            raw,
+			Queryer:        &queryer{raw: raw},
+			QueryerContext: &queryerContext{raw: raw},
 		}
 	})
 
