@@ -1,11 +1,13 @@
 package easql
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
 )
+
+var _ Commiter = (*Tx)(nil)
+var _ CommiterContext = (*Tx)(nil)
 
 type Tx struct {
 	raw *sqlx.Tx
@@ -19,24 +21,6 @@ func newTx(raw *sqlx.Tx) *Tx {
 		Queryer:        &queryer{raw: raw},
 		QueryerContext: &queryerContext{raw: raw},
 	}
-}
-
-func (db *DB) Begin() (*Tx, error) {
-	raw, err := db.raw.Beginx()
-	if err != nil {
-		return nil, fmt.Errorf("error begin: %w", err)
-	}
-
-	return newTx(raw), nil
-}
-
-func (db *DB) BeginContext(ctx context.Context) (*Tx, error) {
-	raw, err := db.raw.BeginTxx(ctx, nil)
-	if err != nil {
-		return nil, fmt.Errorf("error begin: %w", err)
-	}
-
-	return newTx(raw), nil
 }
 
 func (tx *Tx) Commit() error {

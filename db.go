@@ -2,10 +2,15 @@
 package easql
 
 import (
+	"context"
+	"fmt"
 	"sync"
 
 	"github.com/jmoiron/sqlx"
 )
+
+var _ Beginner = (*DB)(nil)
+var _ BeginnerContext = (*DB)(nil)
 
 type DB struct {
 	raw *sqlx.DB
@@ -26,4 +31,22 @@ func NewDB(raw *sqlx.DB) *DB {
 	})
 
 	return dbInstance
+}
+
+func (db *DB) Begin() (Commiter, error) {
+	raw, err := db.raw.Beginx()
+	if err != nil {
+		return nil, fmt.Errorf("error begin: %w", err)
+	}
+
+	return newTx(raw), nil
+}
+
+func (db *DB) BeginContext(ctx context.Context) (CommiterContext, error) {
+	raw, err := db.raw.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error begin: %w", err)
+	}
+
+	return newTx(raw), nil
 }
