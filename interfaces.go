@@ -38,3 +38,23 @@ type RawQueryerContext interface {
 type queryBuilder interface {
 	ToSql() (string, []interface{}, error)
 }
+
+type Commiter interface {
+	Commit() error
+	Rollback() error
+	Queryer
+}
+
+type CommiterContext interface {
+	Commit() error
+	Rollback() error
+	QueryerContext
+}
+
+type Beginner interface {
+	Begin() (Commiter, error)
+}
+
+type BeginnerContext interface {
+	BeginContext(context.Context) (CommiterContext, error)
+}
