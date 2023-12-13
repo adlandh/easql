@@ -4,7 +4,6 @@ package easql
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -18,19 +17,12 @@ type DB struct {
 	QueryerContext
 }
 
-var dbLock sync.Once
-var dbInstance *DB
-
 func NewDB(raw *sqlx.DB) *DB {
-	dbLock.Do(func() {
-		dbInstance = &DB{
-			raw:            raw,
-			Queryer:        &queryer{raw: raw},
-			QueryerContext: &queryerContext{raw: raw},
-		}
-	})
-
-	return dbInstance
+	return &DB{
+		raw:            raw,
+		Queryer:        &queryer{raw: raw},
+		QueryerContext: &queryerContext{raw: raw},
+	}
 }
 
 func (db *DB) Begin() (Commiter, error) {
