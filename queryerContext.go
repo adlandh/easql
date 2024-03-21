@@ -15,7 +15,7 @@ type queryerContext struct {
 func (q *queryerContext) GetContext(ctx context.Context, v interface{}, b squirrel.SelectBuilder) error {
 	query, args, err := b.ToSql()
 	if err != nil {
-		return fmt.Errorf("error to sql: %w", err)
+		return fmt.Errorf(errorSQL, err)
 	}
 
 	if err := q.raw.GetContext(ctx, v, query, args...); err != nil {
@@ -28,7 +28,7 @@ func (q *queryerContext) GetContext(ctx context.Context, v interface{}, b squirr
 func (q *queryerContext) SelectContext(ctx context.Context, v interface{}, b squirrel.SelectBuilder) error {
 	query, args, err := b.ToSql()
 	if err != nil {
-		return fmt.Errorf("error to sql: %w", err)
+		return fmt.Errorf(errorSQL, err)
 	}
 
 	if err := q.raw.SelectContext(ctx, v, query, args...); err != nil {
@@ -41,7 +41,7 @@ func (q *queryerContext) SelectContext(ctx context.Context, v interface{}, b squ
 func (q *queryerContext) execQuery(ctx context.Context, builder queryBuilder) (sql.Result, error) {
 	query, args, err := builder.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("error to sql: %w", err)
+		return nil, fmt.Errorf(errorSQL, err)
 	}
 
 	res, err := q.raw.ExecContext(ctx, query, args...)

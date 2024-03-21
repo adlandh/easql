@@ -7,6 +7,8 @@ import (
 	"github.com/Masterminds/squirrel"
 )
 
+const errorSQL = "error to sql: %w"
+
 type queryer struct {
 	raw RawQueryer
 }
@@ -14,7 +16,7 @@ type queryer struct {
 func (q *queryer) Get(v interface{}, b squirrel.SelectBuilder) error {
 	query, args, err := b.ToSql()
 	if err != nil {
-		return fmt.Errorf("error to sql: %w", err)
+		return fmt.Errorf(errorSQL, err)
 	}
 
 	if err := q.raw.Get(v, query, args...); err != nil {
@@ -27,7 +29,7 @@ func (q *queryer) Get(v interface{}, b squirrel.SelectBuilder) error {
 func (q *queryer) Select(v interface{}, b squirrel.SelectBuilder) error {
 	query, args, err := b.ToSql()
 	if err != nil {
-		return fmt.Errorf("error to sql: %w", err)
+		return fmt.Errorf(errorSQL, err)
 	}
 
 	if err := q.raw.Select(v, query, args...); err != nil {
@@ -40,7 +42,7 @@ func (q *queryer) Select(v interface{}, b squirrel.SelectBuilder) error {
 func (q *queryer) execQuery(builder queryBuilder) (sql.Result, error) {
 	query, args, err := builder.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("error to sql: %w", err)
+		return nil, fmt.Errorf(errorSQL, err)
 	}
 
 	res, err := q.raw.Exec(query, args...)
