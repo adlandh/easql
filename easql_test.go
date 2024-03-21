@@ -83,7 +83,7 @@ func testQueryContext(queryer QueryerContext, fn func(QueryerContext)) {
 	fn(queryer)
 }
 
-func TestQueryer_Get(t *testing.T) {
+func TestQueryerGet(t *testing.T) {
 	t.Parallel()
 	fn := func(q Queryer) {
 		var id int
@@ -106,7 +106,7 @@ func TestQueryer_Get(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestQueryer_GetContext(t *testing.T) {
+func TestQueryerGetContext(t *testing.T) {
 	ctx := context.Background()
 	fn := func(q QueryerContext) {
 		var id int
@@ -129,7 +129,7 @@ func TestQueryer_GetContext(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestQuery_Select(t *testing.T) {
+func TestQuerySelect(t *testing.T) {
 	fn := func(q Queryer) {
 		var ids []int
 		_ = q.Select(&ids, sq.Select("id").From("users"))
@@ -150,7 +150,7 @@ func TestQuery_Select(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestQuery_SelectContext(t *testing.T) {
+func TestQuerySelectContext(t *testing.T) {
 	ctx := context.Background()
 	fn := func(q QueryerContext) {
 		var ids []int
@@ -172,7 +172,7 @@ func TestQuery_SelectContext(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestQuery_Insert(t *testing.T) {
+func TestQueryInsert(t *testing.T) {
 	fn := func(q Queryer) {
 		_, _ = q.Insert(sq.Insert("users").Columns("id").
 			Values(1))
@@ -196,7 +196,7 @@ func TestQuery_Insert(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestQuery_InsertContext(t *testing.T) {
+func TestQueryInsertContext(t *testing.T) {
 	ctx := context.Background()
 	fn := func(q QueryerContext) {
 		_, _ = q.InsertContext(ctx, sq.Insert("users").Columns("id").
@@ -221,7 +221,7 @@ func TestQuery_InsertContext(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestQuery_Update(t *testing.T) {
+func TestQueryUpdate(t *testing.T) {
 	fn := func(q Queryer) {
 		_, _ = q.Update(sq.Update("users").Set("name", "leo").Where(sq.Eq{"id": 1}))
 	}
@@ -244,7 +244,7 @@ func TestQuery_Update(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestQuery_UpdateContext(t *testing.T) {
+func TestQueryUpdateContext(t *testing.T) {
 	ctx := context.Background()
 
 	fn := func(q QueryerContext) {
@@ -269,7 +269,7 @@ func TestQuery_UpdateContext(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestQuery_Delete(t *testing.T) {
+func TestQueryDelete(t *testing.T) {
 	doQuery := func(q Queryer) {
 		func(q Queryer) {
 			_, _ = q.Delete(sq.Delete("users").Where(sq.Eq{"id": 1}))
@@ -294,7 +294,7 @@ func TestQuery_Delete(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestQuery_DeleteContext(t *testing.T) {
+func TestQueryDeleteContext(t *testing.T) {
 	ctx := context.Background()
 	doQuery := func(q QueryerContext) {
 		func(q QueryerContext) {
