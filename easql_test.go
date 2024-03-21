@@ -18,6 +18,14 @@ var (
 	err  error
 )
 
+const (
+	selectFromUsers      = "SELECT id FROM users"
+	selectFromUsersWhere = selectFromUsers + " WHERE id = ?"
+	insertIntoUsers      = "INSERT INTO users"
+	deleteFromUsers      = "DELETE FROM users WHERE id = ?"
+	updateUsers          = "UPDATE users SET name = ?"
+)
+
 func TestMain(m *testing.M) {
 	var raw *sql.DB
 	raw, mock, err = sqlmock.New()
@@ -84,13 +92,13 @@ func TestQueryer_Get(t *testing.T) {
 	}
 
 	// DB
-	mock.ExpectQuery("SELECT id FROM users WHERE id=?").WithArgs(1)
+	mock.ExpectQuery(selectFromUsersWhere).WithArgs(1)
 	testQuery(db, fn)
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 	// Transaction
 	mock.ExpectBegin()
-	mock.ExpectQuery("SELECT id FROM users WHERE id=?").WithArgs(1)
+	mock.ExpectQuery(selectFromUsersWhere).WithArgs(1)
 	mock.ExpectCommit()
 	tx, _ := db.Begin()
 	testQuery(tx, fn)
@@ -107,13 +115,13 @@ func TestQueryer_GetContext(t *testing.T) {
 	}
 
 	// DB
-	mock.ExpectQuery("SELECT id FROM users WHERE id=?").WithArgs(1)
+	mock.ExpectQuery(selectFromUsersWhere).WithArgs(1)
 	testQueryContext(db, fn)
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 	// Transaction
 	mock.ExpectBegin()
-	mock.ExpectQuery("SELECT id FROM users WHERE id=?").WithArgs(1)
+	mock.ExpectQuery(selectFromUsersWhere).WithArgs(1)
 	mock.ExpectCommit()
 	tx, _ := db.BeginContext(ctx)
 	testQueryContext(tx, fn)
@@ -128,13 +136,13 @@ func TestQuery_Select(t *testing.T) {
 	}
 
 	// DB
-	mock.ExpectQuery("SELECT id FROM users")
+	mock.ExpectQuery(selectFromUsers)
 	testQuery(db, fn)
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 	// Transaction
 	mock.ExpectBegin()
-	mock.ExpectQuery("SELECT id FROM users")
+	mock.ExpectQuery(selectFromUsers)
 	mock.ExpectCommit()
 	tx, _ := db.Begin()
 	testQuery(tx, fn)
@@ -150,13 +158,13 @@ func TestQuery_SelectContext(t *testing.T) {
 	}
 
 	// DB
-	mock.ExpectQuery("SELECT id FROM users")
+	mock.ExpectQuery(selectFromUsers)
 	testQueryContext(db, fn)
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 	// Transaction
 	mock.ExpectBegin()
-	mock.ExpectQuery("SELECT id FROM users")
+	mock.ExpectQuery(selectFromUsers)
 	mock.ExpectCommit()
 	tx, _ := db.BeginContext(ctx)
 	testQueryContext(tx, fn)
@@ -171,7 +179,7 @@ func TestQuery_Insert(t *testing.T) {
 	}
 
 	expectQuery := func() {
-		mock.ExpectExec("INSERT INTO users").WithArgs(1)
+		mock.ExpectExec(insertIntoUsers).WithArgs(1)
 	}
 
 	// DB
@@ -196,7 +204,7 @@ func TestQuery_InsertContext(t *testing.T) {
 	}
 
 	expectQuery := func() {
-		mock.ExpectExec("INSERT INTO users").WithArgs(1)
+		mock.ExpectExec(insertIntoUsers).WithArgs(1)
 	}
 
 	// DB
@@ -219,7 +227,7 @@ func TestQuery_Update(t *testing.T) {
 	}
 
 	expectQuery := func() {
-		mock.ExpectExec("UPDATE users SET name").WithArgs("leo", 1)
+		mock.ExpectExec(updateUsers).WithArgs("leo", 1)
 	}
 
 	// DB
@@ -244,7 +252,7 @@ func TestQuery_UpdateContext(t *testing.T) {
 	}
 
 	expectQuery := func() {
-		mock.ExpectExec("UPDATE users SET name").WithArgs("leo", 1)
+		mock.ExpectExec(updateUsers).WithArgs("leo", 1)
 	}
 
 	// DB
@@ -269,7 +277,7 @@ func TestQuery_Delete(t *testing.T) {
 	}
 
 	expectQuery := func() {
-		mock.ExpectExec("DELETE FROM users").WithArgs(1)
+		mock.ExpectExec(deleteFromUsers).WithArgs(1)
 	}
 
 	// DB
@@ -295,7 +303,7 @@ func TestQuery_DeleteContext(t *testing.T) {
 	}
 
 	expectQuery := func() {
-		mock.ExpectExec("DELETE FROM users").WithArgs(1)
+		mock.ExpectExec(deleteFromUsers).WithArgs(1)
 	}
 
 	// DB
