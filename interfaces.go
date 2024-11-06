@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/jmoiron/sqlx"
 )
 
 type Queryer interface {
@@ -57,4 +58,8 @@ type Beginner interface {
 
 type BeginnerContext interface {
 	BeginContext(context.Context) (CommiterContext, error)
+}
+
+type RawExposer interface {
+	Raw() *sqlx.DB
 }

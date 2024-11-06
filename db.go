@@ -10,6 +10,9 @@ import (
 
 var _ Beginner = (*DB)(nil)
 var _ BeginnerContext = (*DB)(nil)
+var _ Queryer = (*DB)(nil)
+var _ QueryerContext = (*DB)(nil)
+var _ RawExposer = (*DB)(nil)
 
 type DB struct {
 	raw *sqlx.DB
@@ -41,4 +44,8 @@ func (db *DB) BeginContext(ctx context.Context) (CommiterContext, error) {
 	}
 
 	return newTx(raw), nil
+}
+
+func (db *DB) Raw() *sqlx.DB {
+	return db.raw
 }
