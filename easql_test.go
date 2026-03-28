@@ -74,7 +74,7 @@ func runDBAndTxCase(t *testing.T, expect func(sqlmock.Sqlmock), run func(Queryer
 	})
 }
 
-func runDBAndTxContextCase(t *testing.T, expect func(sqlmock.Sqlmock), run func(QueryerContext), ctx context.Context) {
+func runDBAndTxContextCase(ctx context.Context, t *testing.T, expect func(sqlmock.Sqlmock), run func(QueryerContext)) {
 	t.Helper()
 
 	t.Run("DB", func(t *testing.T) {
@@ -112,12 +112,14 @@ func TestImplementsInterfaces(t *testing.T) {
 	t.Parallel()
 
 	t.Run("DB", func(t *testing.T) {
+		t.Parallel()
 		db, _ := newTestDB(t)
 		assert.Implements(t, (*Queryer)(nil), db)
 		assert.Implements(t, (*QueryerContext)(nil), db)
 	})
 
 	t.Run("Tx", func(t *testing.T) {
+		t.Parallel()
 		runDBCase(t, func(mock sqlmock.Sqlmock) {
 			mock.ExpectBegin()
 		}, func(db *DB) {
@@ -266,7 +268,7 @@ func TestQueryerContextMethods(t *testing.T) {
 
 	for _, tc := range queryerContextCases {
 		t.Run(tc.name, func(t *testing.T) {
-			runDBAndTxContextCase(t, tc.expect, tc.run, ctx)
+			runDBAndTxContextCase(ctx, t, tc.expect, tc.run)
 		})
 	}
 }
