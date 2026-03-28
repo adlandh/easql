@@ -6,9 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
 	sq "github.com/Masterminds/squirrel"
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -25,6 +23,15 @@ type stubBuilder struct {
 }
 
 type contextKey string
+
+func newTestContext() context.Context {
+	return context.WithValue(context.Background(), contextKey("key"), "value")
+}
+
+func assertSelectBuilderError(t *testing.T, err error) {
+	t.Helper()
+	assert.EqualError(t, err, "error to sql: select statements must have at least one result column")
+}
 
 func (b stubBuilder) ToSql() (string, []interface{}, error) {
 	if b.err != nil {
@@ -102,27 +109,13 @@ func (r *stubRawQueryerContext) ExecContext(ctx context.Context, query string, a
 	return r.execResult, r.execErr
 }
 
-func newErrorTestDB(t *testing.T) (*DB, sqlmock.Sqlmock) {
-	t.Helper()
-
-	raw, mock, err := sqlmock.New()
-	require.NoError(t, err)
-
-	return NewDB(sqlx.NewDb(raw, "mysql")), mock
-}
-
 func TestDBRawExposesUnderlyingDB(t *testing.T) {
-	raw, _, err := sqlmock.New()
-	require.NoError(t, err)
-
-	wrapped := sqlx.NewDb(raw, "mysql")
-	db := NewDB(wrapped)
-
-	assert.Same(t, wrapped, db.Raw())
+	db, _ := newTestDB(t)
+	assert.Same(t, db.raw, db.Raw())
 }
 
 func TestDBBeginWrapsError(t *testing.T) {
-	db, mock := newErrorTestDB(t)
+	db, mock := newTestDB(t)
 	wantErr := errors.New("begin failed")
 	mock.ExpectBegin().WillReturnError(wantErr)
 
@@ -135,7 +128,7 @@ func TestDBBeginWrapsError(t *testing.T) {
 }
 
 func TestDBBeginContextWrapsError(t *testing.T) {
-	db, mock := newErrorTestDB(t)
+	db, mock := newTestDB(t)
 	wantErr := errors.New("begin failed")
 	mock.ExpectBegin().WillReturnError(wantErr)
 
@@ -148,7 +141,7 @@ func TestDBBeginContextWrapsError(t *testing.T) {
 }
 
 func TestTxCommitWrapsError(t *testing.T) {
-	db, mock := newErrorTestDB(t)
+	db, mock := newTestDB(t)
 	wantErr := errors.New("commit failed")
 	mock.ExpectBegin()
 	mock.ExpectCommit().WillReturnError(wantErr)
@@ -164,7 +157,7 @@ func TestTxCommitWrapsError(t *testing.T) {
 }
 
 func TestTxRollbackWrapsError(t *testing.T) {
-	db, mock := newErrorTestDB(t)
+	db, mock := newTestDB(t)
 	wantErr := errors.New("rollback failed")
 	mock.ExpectBegin()
 	mock.ExpectRollback().WillReturnError(wantErr)
@@ -208,7 +201,7 @@ func TestQueryerGetWrapsBuilderError(t *testing.T) {
 
 	err := q.Get(&got, sq.SelectBuilder{})
 
-	assert.EqualError(t, err, "error to sql: select statements must have at least one result column")
+	assertSelectBuilderError(t, err)
 }
 
 func TestQueryerSelectPassesSQLAndArgs(t *testing.T) {
@@ -240,7 +233,7 @@ func TestQueryerSelectWrapsBuilderError(t *testing.T) {
 
 	err := q.Select(&got, sq.SelectBuilder{})
 
-	assert.EqualError(t, err, "error to sql: select statements must have at least one result column")
+	assertSelectBuilderError(t, err)
 }
 
 func TestQueryerExecQueryPassesSQLAndArgs(t *testing.T) {
@@ -281,7 +274,7 @@ func TestQueryerExecQueryWrapsRawError(t *testing.T) {
 func TestQueryerContextGetPassesContextSQLAndArgs(t *testing.T) {
 	raw := &stubRawQueryerContext{}
 	q := &queryerContext{raw: raw}
-	ctx := context.WithValue(context.Background(), contextKey("key"), "value")
+	ctx := newTestContext()
 	var got int
 
 	err := q.GetContext(ctx, &got, sq.Select("id").From("users").Where(sq.Eq{"id": 9}))
@@ -309,13 +302,13 @@ func TestQueryerContextGetWrapsBuilderError(t *testing.T) {
 
 	err := q.GetContext(context.Background(), &got, sq.SelectBuilder{})
 
-	assert.EqualError(t, err, "error to sql: select statements must have at least one result column")
+	assertSelectBuilderError(t, err)
 }
 
 func TestQueryerContextSelectPassesContextSQLAndArgs(t *testing.T) {
 	raw := &stubRawQueryerContext{}
 	q := &queryerContext{raw: raw}
-	ctx := context.WithValue(context.Background(), contextKey("key"), "value")
+	ctx := newTestContext()
 	var got []int
 
 	err := q.SelectContext(ctx, &got, sq.Select("id").From("users").Where(sq.Eq{"id": 4}))
@@ -343,14 +336,14 @@ func TestQueryerContextSelectWrapsBuilderError(t *testing.T) {
 
 	err := q.SelectContext(context.Background(), &got, sq.SelectBuilder{})
 
-	assert.EqualError(t, err, "error to sql: select statements must have at least one result column")
+	assertSelectBuilderError(t, err)
 }
 
 func TestQueryerContextExecQueryPassesContextSQLAndArgs(t *testing.T) {
 	wantResult := stubResult{}
 	raw := &stubRawQueryerContext{execResult: wantResult}
 	q := &queryerContext{raw: raw}
-	ctx := context.WithValue(context.Background(), contextKey("key"), "value")
+	ctx := newTestContext()
 
 	res, err := q.execQuery(ctx, stubBuilder{query: "INSERT INTO users(id) VALUES(?)", args: []interface{}{1}})
 
