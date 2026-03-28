@@ -148,6 +148,9 @@ func TestTxCommitWrapsError(t *testing.T) {
 
 	tx, err := db.Begin()
 	require.NoError(t, err)
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	err = tx.Commit()
 
@@ -164,6 +167,9 @@ func TestTxRollbackWrapsError(t *testing.T) {
 
 	tx, err := db.Begin()
 	require.NoError(t, err)
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	err = tx.Rollback()
 

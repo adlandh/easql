@@ -47,6 +47,9 @@ func runTxCase(t *testing.T, expect func(sqlmock.Sqlmock), run func(Commiter), b
 
 	tx, err := begin(db)
 	require.NoError(t, err)
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	run(tx)
 	assert.NoError(t, tx.Commit())
@@ -120,6 +123,9 @@ func TestImplementsInterfaces(t *testing.T) {
 		}, func(db *DB) {
 			tx, err := db.Begin()
 			require.NoError(t, err)
+			defer func() {
+				_ = tx.Rollback()
+			}()
 			assert.Implements(t, (*Queryer)(nil), tx)
 			assert.Implements(t, (*QueryerContext)(nil), tx)
 		})
@@ -133,6 +139,9 @@ func TestRollback(t *testing.T) {
 	}, func(db *DB) {
 		tx, err := db.Begin()
 		require.NoError(t, err)
+		defer func() {
+			_ = tx.Rollback()
+		}()
 		assert.NoError(t, tx.Rollback())
 	})
 }
